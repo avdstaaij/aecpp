@@ -1,50 +1,13 @@
 /*
 
-aec++ - A C++ Library for ansi escape codes, made by Arthur van der Staaij
+AEC++ - Yet another small C++11 library for colors and effects in terminal
+output by means of ansi escape codes, made by Arthur van der Staaij
 
-aec++ is a small library for safe use of ansi escape codes in terminal output.
-It provides overloads of operator<< for output streams to output various escape
-codes, by default only if the output stream is a terminal which supports them.
-In addition, the Style class is provided to store combinations of multiple
-escape codes and output them at together.
+This file is released under the terms of the MIT license.
+Read LICENSE.txt for more information.
 
-Example usage:
-
-std::cout << aec::bold << aec::red << "hello world!" << std::endl << aec::reset;
-auto code = aec::blue;
-std::cout << code << "I prefer blue." << aec::reset << std::endl;
-
-Examples of Style objects:
-
-auto style = aec::italic + aec::blue;
-std::cout << style << "Using a Style object!" << aec::reset << std::endl;
-std::cout << aec::underline + aec::green
-          << "Inline construction is also possible!" << std::endl
-          << aec::reset;
-
-The behavior of aec++ can be changed at runtime with aec::setMode.
-This function takes an aec::Mode enum. The following modes are supported:
-
-- aec::Mode::Always
-  Always print escape codes.
-
-- aec::Mode::Auto (default)
-  Print escape codes if and only if the output stream is a terminal which
-  supports them.
-
-- aec::Mode::Semi
-  Print escape codes if and only if the program is running in an environment
-  that supports them, but do not check if the output stream is a tty.
-  This may be useful if an aec++ program is used in a pipeline.
-
-- aec::Mode::Never
-  Never print escape codes.
-
-Note:
-When using background colors, it is important to send aec::reset before
-writing a newline. Otherwise, the next line may be affected.
-
-This library was inspired by rang: https://github.com/agauniyal/rang
+To download the latest version, report issues or request new features, visit
+https://github.com/avdstaaij/aecpp
 
 */
 
