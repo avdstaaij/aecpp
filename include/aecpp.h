@@ -107,6 +107,9 @@ enum class Mode {
 //-------------------------------- Internals ---------------------------------//
 //============================================================================//
 
+// Forward declaration
+void checkIfOutputStreamsAreTerminals();
+
 namespace aecImplementation {
 
 std::atomic_bool aecSupportedStatic(false);
@@ -140,10 +143,7 @@ struct InitializationDummy {
 				return std::strstr(envTerm, term) != nullptr;
 			}
 		);
-		if (aecSupportedStatic) {
-			coutIsTTY = isatty(fileno(stdout));
-			cerrIsTTY = isatty(fileno(stderr));
-		}
+		checkIfOutputStreamsAreTerminals();
 #endif
 	}
 } initializationDummy;
@@ -196,6 +196,15 @@ inline void setMode(Mode mode) {
 
 inline Mode getMode() {
 	return aecImplementation::mode;
+}
+
+//============================================================================//
+//------------- Re-checking whether output streams are terminals -------------//
+//============================================================================//
+
+void checkIfOutputStreamsAreTerminals() {
+	aecImplementation::coutIsTTY = isatty(fileno(stdout));
+	aecImplementation::cerrIsTTY = isatty(fileno(stderr));
 }
 
 //============================================================================//

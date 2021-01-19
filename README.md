@@ -165,6 +165,15 @@ Terminal support of ansi escape codes is currently determined solely based on
 the environment variable `$TERM`. View `aecpp.h` for the values of `$TERM` that
 AEC++ considers ansi-escape-code-supporting.
 
+To improve performance, AEC++ does not check whether the output stream is
+connected to a terminal for every printed escape code. Instead, it checks this
+only once, at the start of the program. This is not a problem in the vast
+majority of use cases. However, if you do somehow change the targets of the
+standard output streams at runtime, you can call
+`aec::checkIfOutputStreamsAreTerminals` to make AEC++ re-check them. The length
+of that function name should serve as an indication of how unlikely it is that
+you need it :).
+
 ## Additional examples
 
 Additional example code can be found in
