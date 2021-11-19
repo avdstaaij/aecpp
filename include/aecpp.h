@@ -131,11 +131,22 @@ void checkIfOutputStreamsAreTerminals();
 
 namespace aecImplementation {
 
-std::atomic_bool aecSupportedStatic(false);
-std::atomic_bool coutIsTTY(false);
-std::atomic_bool cerrIsTTY(false);
+static std::atomic_bool aecSupportedStatic(false);
 
-std::atomic<Mode> mode(Mode::Auto);
+inline std::atomic_bool& coutIsTTY() {
+	static std::atomic_bool coutIsTTY(false);
+	return coutIsTTY;
+}
+
+inline std::atomic_bool& cerrIsTTY() {
+	static std::atomic_bool cerrIsTTY(false);
+	return cerrIsTTY;
+}
+
+inline std::atomic<Mode>& mode() noexcept {
+	static std::atomic<Mode> mode(Mode::Auto);
+	return mode;
+}
 
 struct InitializationDummy {
 	InitializationDummy() noexcept {
@@ -165,21 +176,22 @@ struct InitializationDummy {
 		checkIfOutputStreamsAreTerminals();
 #endif
 	}
-} initializationDummy;
+};
+static InitializationDummy initializationDummy;
 
 inline bool isTTY(const std::ostream& os) noexcept {
 	if (os.rdbuf() == std::cout.rdbuf()) {
-		return coutIsTTY;
+		return coutIsTTY();
 	}
 	if (os.rdbuf() == std::cerr.rdbuf()) {
-		return cerrIsTTY;
+		return cerrIsTTY();
 	}
 	return false;
 }
 
 inline bool aecEnabled(const std::ostream& os) noexcept {
 #ifdef AECPP_OS_SUPPORTED
-	switch (mode) {
+	switch (mode()) {
 	case Mode::Auto:
 		return aecSupportedStatic && isTTY(os);
 	case Mode::Always:
@@ -210,20 +222,20 @@ struct isCode {
 //============================================================================//
 
 inline void setMode(Mode mode) {
-	aecImplementation::mode = mode;
+	aecImplementation::mode() = mode;
 }
 
 inline Mode getMode() {
-	return aecImplementation::mode;
+	return aecImplementation::mode();
 }
 
 //============================================================================//
 //------------- Re-checking whether output streams are terminals -------------//
 //============================================================================//
 
-void checkIfOutputStreamsAreTerminals() {
-	aecImplementation::coutIsTTY = isatty(fileno(stdout));
-	aecImplementation::cerrIsTTY = isatty(fileno(stderr));
+inline void checkIfOutputStreamsAreTerminals() {
+	aecImplementation::coutIsTTY() = isatty(fileno(stdout));
+	aecImplementation::cerrIsTTY() = isatty(fileno(stderr));
 }
 
 //============================================================================//
@@ -276,7 +288,7 @@ inline Style& Style::operator+=(const Style& r) {
 	return *this;
 }
 
-Style operator+(Style l, const Style& r) {
+inline Style operator+(Style l, const Style& r) {
 	return l += r;
 }
 
