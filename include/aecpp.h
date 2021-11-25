@@ -131,26 +131,10 @@ void checkIfOutputStreamsAreTerminals();
 
 namespace aecImplementation {
 
-static std::atomic_bool aecSupportedStatic(false);
-
-inline std::atomic_bool& coutIsTTY() {
-	static std::atomic_bool coutIsTTY(false);
-	return coutIsTTY;
-}
-
-inline std::atomic_bool& cerrIsTTY() {
-	static std::atomic_bool cerrIsTTY(false);
-	return cerrIsTTY;
-}
-
-inline std::atomic<Mode>& mode() noexcept {
-	static std::atomic<Mode> mode(Mode::Auto);
-	return mode;
-}
-
-struct InitializationDummy {
-	InitializationDummy() noexcept {
 #ifdef AECPP_OS_SUPPORTED
+
+inline bool aecSupportedStatic() noexcept {
+	static bool supported = [](){
 		const char *terms[] = {
 			"ansi",
 			"color",
@@ -168,16 +152,24 @@ struct InitializationDummy {
 			"xterm"
 		};
 		auto envTerm = std::getenv("TERM");
-		aecSupportedStatic = std::any_of(std::begin(terms), std::end(terms),
+		return std::any_of(std::begin(terms), std::end(terms),
 			[&](const char* term){
 				return std::strstr(envTerm, term) != nullptr;
 			}
 		);
-		checkIfOutputStreamsAreTerminals();
-#endif
-	}
-};
-static InitializationDummy initializationDummy;
+	}();
+	return supported;
+}
+
+inline std::atomic_bool& coutIsTTY() {
+	static std::atomic_bool coutIsTTY(isatty(fileno(stdout)));
+	return coutIsTTY;
+}
+
+inline std::atomic_bool& cerrIsTTY() {
+	static std::atomic_bool cerrIsTTY(isatty(fileno(stderr)));
+	return cerrIsTTY;
+}
 
 inline bool isTTY(const std::ostream& os) noexcept {
 	if (os.rdbuf() == std::cout.rdbuf()) {
@@ -189,7 +181,16 @@ inline bool isTTY(const std::ostream& os) noexcept {
 	return false;
 }
 
+#endif // #ifdef AEC_OS_SUPPORTED
+
+inline std::atomic<Mode>& mode() noexcept {
+	static std::atomic<Mode> mode(Mode::Auto);
+	return mode;
+}
+
 inline bool aecEnabled(const std::ostream& os) noexcept {
+	// Should we enable aec if the mode is set to Always even if the OS is not
+	// supported? Maybe.
 #ifdef AECPP_OS_SUPPORTED
 	switch (mode()) {
 	case Mode::Auto:
@@ -234,8 +235,10 @@ inline Mode getMode() {
 //============================================================================//
 
 inline void checkIfOutputStreamsAreTerminals() {
+#ifdef AECPP_OS_SUPPORTED
 	aecImplementation::coutIsTTY() = isatty(fileno(stdout));
 	aecImplementation::cerrIsTTY() = isatty(fileno(stderr));
+#endif
 }
 
 //============================================================================//
@@ -246,6 +249,7 @@ class Style {
 public:
 	// Using these constructors explicitly is not recommended.
 	// Instead, rely on the automatic conversion rules of c++.
+
 	Style()                                   {}
 	Style(Reset)           : reset(true)      {}
 	Style(Effect effect)   : effect(effect)   {}
