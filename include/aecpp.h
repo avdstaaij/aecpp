@@ -318,7 +318,7 @@ inline typename std::enable_if<
 operator<<(std::ostream& os, Code code) {
 	if (aecImplementation::aecEnabled(os)) {
 		std::ostream osUnformatted(os.rdbuf());
-		osUnformatted << "\e[" << static_cast<unsigned short>(code) << "m";
+		osUnformatted << "\033[" << static_cast<unsigned short>(code) << "m";
 	}
 	return os;
 }
@@ -331,16 +331,16 @@ inline std::ostream& operator<<(std::ostream& os, const Style& style) {
 	if (style.reset) {osUnformatted << reset;}
 	bool wroteEsc = false;
 	if (style.effect  != static_cast<Effect>(-1))  {
-		osUnformatted << "\e[" << static_cast<unsigned short>(style.effect);
+		osUnformatted << "\033[" << static_cast<unsigned short>(style.effect);
 		wroteEsc = true;
 	}
 	if (style.color   != static_cast<Color>(-1))   {
-		osUnformatted << (wroteEsc ? ";" : "\e[")
+		osUnformatted << (wroteEsc ? ";" : "\033[")
 		              << static_cast<unsigned short>(style.color);
 		wroteEsc = true;
 	}
 	if (style.bgcolor != static_cast<BGColor>(-1)) {
-		osUnformatted << (wroteEsc ? ";" : "\e[")
+		osUnformatted << (wroteEsc ? ";" : "\033[")
 		              << static_cast<unsigned short>(style.bgcolor);
 		wroteEsc = true;
 	}
